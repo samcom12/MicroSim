@@ -11,6 +11,7 @@
 . ./resources/pview_chkr.sh
 . ./resources/nvcc_chkr.sh
 . ./resources/vtk_checker.sh
+. ./resources/cmake_chkr.sh
 
 #	. ./C_Header_files/c_gsl_chkr.sh
 h5pcc_chkr
@@ -24,4 +25,5 @@ fftw3chkr
 CL_Devices
 nvcc_checker 11.0
 py_vt
+cmake_checker 3.20
 

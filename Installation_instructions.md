@@ -1,8 +1,76 @@
 # Installation of MicroSim
 
 1. Running dependencies checker
-2. Installing GUI for MicroSim
-3. Running the Solvers
+2. Building with CMake (recommended)
+3. Installing GUI for MicroSim
+4. Running the Solvers (legacy Make instructions)
+
+---
+
+## 2. Building with CMake (recommended)
+
+CMake 3.20 or later is required.  The top-level `CMakeLists.txt` coordinates
+all solvers and locates dependencies automatically via `find_package`.
+
+### Quick start
+
+```bash
+# Configure (from the repository root)
+cmake -B build
+
+# Build all enabled solvers
+cmake --build build -j$(nproc)
+
+# (Optional) install binaries to /usr/local/bin
+cmake --install build
+```
+
+### Selecting solvers
+
+All solvers are enabled by default.  Disable those you do not need:
+
+```bash
+cmake -B build \
+  -DBUILD_GP_SERIAL=ON   \
+  -DBUILD_GP_MPI=ON      \
+  -DBUILD_CH_FFT=ON      \
+  -DBUILD_KKS_CUFFT=OFF  \
+  -DBUILD_KKS_CUDA_MPI=OFF \
+  -DBUILD_KKS_OPENCL=OFF
+```
+
+### Specifying custom library locations
+
+If a library is installed in a non-standard path, pass its root directory:
+
+| Variable | Used by |
+|---|---|
+| `GSL_ROOT_DIR` | GP MPI, KKS CUDA MPI, KKS OpenCL |
+| `FFTW_ROOT` | Cahn-Hilliard FFT |
+| `HDF5_ROOT` | GP MPI, KKS CUDA MPI |
+| `MPI_HOME` (or `MPI_C_COMPILER`) | GP MPI, KKS CUDA MPI, KKS OpenCL |
+| `CMAKE_CUDA_ARCHITECTURES` | KKS CuFFT, KKS CUDA MPI |
+
+Example:
+
+```bash
+cmake -B build \
+  -DGSL_ROOT_DIR=/opt/gsl-2.7 \
+  -DFFTW_ROOT=/opt/fftw-3.3.10 \
+  -DCMAKE_CUDA_ARCHITECTURES="70;80"
+```
+
+### Solvers not converted to CMake
+
+The following solvers use their own build frameworks and are **not** part of
+the CMake build:
+
+- **`Grand_potential_AMReX`** — uses AMReX's `GNUmakefile` framework.
+  Build with `make` inside `Grand_potential_AMReX/Single_Level/Exec/`.
+- **`Bridgman`** (OpenFOAM solver) — uses OpenFOAM's `wmake` system.
+  Build with `wmake` inside `Bridgman/solver/`.
+
+---
 
 ## 1. Running Dependency Checker
 
