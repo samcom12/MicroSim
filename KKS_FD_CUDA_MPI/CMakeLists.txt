@@ -40,7 +40,8 @@ endif()
 # Optional cuFFTMp paths (user-supplied via cache variables)
 # ---------------------------------------------------------------------------
 set(NVHPC_ROOT "/opt/nvidia" CACHE PATH "NVIDIA HPC SDK root")
-set(HPCSDK_VERSION "23.3" CACHE STRING "HPC SDK version")
+# Override HPCSDK_VERSION to match your installed HPC SDK (e.g. 23.7, 24.1).
+set(HPCSDK_VERSION "23.3" CACHE STRING "HPC SDK version (override to match your installation)")
 set(NVHPC_HOME "${NVHPC_ROOT}/hpc_sdk/Linux_x86_64/${HPCSDK_VERSION}")
 
 if(ENABLE_CUFFTMP)
@@ -135,10 +136,6 @@ target_compile_options(microsim_kks_fd_cuda_mpi PRIVATE
         --diag_suppress=declared_but_not_referenced
         --diag_suppress=set_but_not_used
     >
-    $<$<COMPILE_LANGUAGE:C>:
-        --diag_suppress=declared_but_not_referenced
-        --diag_suppress=set_but_not_used
-    >
 )
 
 # Link libraries
@@ -155,10 +152,14 @@ if(ENABLE_HDF5)
 endif()
 
 if(ENABLE_CUFFTMP)
-    list(APPEND _KKS_CUDA_MPI_LIBS
-        -L${CUFFT_LIB}
-        cufftMp
+    # Use an imported target for cuFFTMp so CMake can track the dependency
+    # correctly.  Users can override CUFFT_LIB via the cache variable.
+    add_library(cuFFTMp SHARED IMPORTED)
+    set_target_properties(cuFFTMp PROPERTIES
+        IMPORTED_LOCATION "${CUFFT_LIB}/libcufftMp.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CUFFT_INC}"
     )
+    list(APPEND _KKS_CUDA_MPI_LIBS cuFFTMp)
 else()
     list(APPEND _KKS_CUDA_MPI_LIBS CUDA::cufft)
 endif()
